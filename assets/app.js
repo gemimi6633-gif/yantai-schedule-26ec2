@@ -103,9 +103,6 @@ function classStatus(course, now = getToday()) {
 }
 
 function matchesFilter(course, week) {
-  if (state.filter === "all") return true;
-  if (state.filter === "odd") return course.weeks.some((weekValue) => weekValue % 2 === 1);
-  if (state.filter === "even") return course.weeks.some((weekValue) => weekValue % 2 === 0);
   return week >= 1 && course.weeks.includes(week);
 }
 
@@ -215,18 +212,16 @@ function renderWeek(week) {
   const filterName = {
     current: `本周每天课程 · 第${week}周`,
     next: `下周每天课程 · 第${week}周`,
-    odd: "单周课程合集",
-    even: "双周课程合集",
-    all: "全部课程表",
   };
   document.querySelector("#weekTitle").textContent = filterName[state.filter];
 }
 
 function renderSummary(week) {
-  const odd = courses.filter((course) => course.weeks.some((item) => item % 2 === 1)).length;
-  const even = courses.filter((course) => course.weeks.some((item) => item % 2 === 0)).length;
-  document.querySelector("#oddCount").textContent = odd;
-  document.querySelector("#evenCount").textContent = even;
+  const nextWeek = week + 1;
+  document.querySelector("#currentWeekType").textContent = weekType(week);
+  document.querySelector("#currentWeekNumber").textContent = week < 1 ? "本周未开学" : `本周 · 第${week}周`;
+  document.querySelector("#nextWeekType").textContent = weekType(nextWeek);
+  document.querySelector("#nextWeekNumber").textContent = `下周 · 第${nextWeek}周`;
   const next = getNextClass(week);
   document.querySelector("#nextClass").textContent = next
     ? `下一节：第${next.week}周 ${dayNames[next.day]} ${periods[next.period].time}，${next.name}，${next.location}。`

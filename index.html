@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">烟台科技学院 · 2026-2027-1</p>
           <h1>26级电商专升本2班实时课表</h1>
-          <p class="subtitle">自动计算当前周次，拆分单周/双周课程，快速查看每天上什么课。</p>
+          <p class="subtitle">自动计算当前周次并判断单双周，快速查看本周或下周每天上什么课。</p>
         </div>
         <div class="status-card" aria-live="polite">
           <span id="todayLabel">今日</span>
@@ -30,12 +30,9 @@
           <span>开学第一周周一</span>
           <input id="termStart" type="date" value="2026-08-31" />
         </label>
-        <div class="segmented" role="tablist" aria-label="周次类型">
+        <div class="segmented" role="tablist" aria-label="周次">
           <button class="active" data-filter="current" type="button">本周</button>
           <button data-filter="next" type="button">下周</button>
-          <button data-filter="odd" type="button">单周</button>
-          <button data-filter="even" type="button">双周</button>
-          <button data-filter="all" type="button">全部</button>
         </div>
         <div class="segmented days" role="tablist" aria-label="星期">
           <button class="active" data-day="today" type="button">今天</button>
@@ -62,16 +59,16 @@
         </article>
 
         <aside class="panel summary-panel">
-          <p class="eyebrow">Week Split</p>
-          <h2>单双周概览</h2>
+          <p class="eyebrow">Auto Week</p>
+          <h2>自动判断单双周</h2>
           <div class="split-grid">
             <div>
-              <strong id="oddCount">0</strong>
-              <span>单周课程安排</span>
+              <strong id="currentWeekType">--</strong>
+              <span id="currentWeekNumber">本周</span>
             </div>
             <div>
-              <strong id="evenCount">0</strong>
-              <span>双周课程安排</span>
+              <strong id="nextWeekType">--</strong>
+              <span id="nextWeekNumber">下周</span>
             </div>
           </div>
           <p id="nextClass" class="next-class">正在查找下一节课...</p>
