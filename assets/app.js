@@ -109,6 +109,10 @@ function matchesFilter(course, week) {
   return week >= 1 && course.weeks.includes(week);
 }
 
+function displayWeek(currentWeek) {
+  return state.filter === "next" ? currentWeek + 1 : currentWeek;
+}
+
 function targetDay() {
   if (state.selectedDay === "today") return getToday().getDay();
   return Number(state.selectedDay);
@@ -141,7 +145,14 @@ function getNextClass(week) {
 
 function courseCard(course, week, compact = false) {
   const status = state.filter === "current" ? classStatus(course) : "";
-  const activeText = status === "now" ? "正在上课" : status === "upcoming" ? "稍后上课" : compactWeeks(course.weeks);
+  const activeText =
+    status === "now"
+      ? "正在上课"
+      : status === "upcoming"
+        ? "稍后上课"
+        : state.filter === "next"
+          ? `第${week}周`
+          : compactWeeks(course.weeks);
   if (compact) {
     return `
       <div class="mini-course">
@@ -166,7 +177,14 @@ function courseCard(course, week, compact = false) {
 function renderToday(week) {
   const day = targetDay();
   const visible = coursesForDay(day, week);
-  const titlePrefix = state.selectedDay === "today" ? "今天" : dayNames[day];
+  const titlePrefix =
+    state.selectedDay === "today" && state.filter === "next"
+      ? "下周今天"
+      : state.filter === "next"
+        ? `下周${dayNames[day].replace("星期", "周")}`
+        : state.selectedDay === "today"
+          ? "今天"
+          : dayNames[day];
   document.querySelector("#currentDayTitle").textContent = `${titlePrefix}课程`;
   document.querySelector("#courseCount").textContent = `${visible.length} 门课`;
   document.querySelector("#todayCourses").innerHTML = visible.length
@@ -194,7 +212,13 @@ function renderWeek(week) {
     })
     .join("");
 
-  const filterName = { current: "本周每天课程", odd: "单周课程合集", even: "双周课程合集", all: "全部课程表" };
+  const filterName = {
+    current: `本周每天课程 · 第${week}周`,
+    next: `下周每天课程 · 第${week}周`,
+    odd: "单周课程合集",
+    even: "双周课程合集",
+    all: "全部课程表",
+  };
   document.querySelector("#weekTitle").textContent = filterName[state.filter];
 }
 
@@ -219,11 +243,12 @@ function renderHeader(week) {
 }
 
 function render() {
-  const week = getWeekNumber();
-  renderHeader(week);
+  const currentWeek = getWeekNumber();
+  const week = displayWeek(currentWeek);
+  renderHeader(currentWeek);
   renderToday(week);
   renderWeek(week);
-  renderSummary(week);
+  renderSummary(currentWeek);
 }
 
 document.querySelectorAll("[data-filter]").forEach((button) => {
