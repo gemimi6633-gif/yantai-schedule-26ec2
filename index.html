@@ -6,7 +6,7 @@
     <title>26级电商专升本2班实时课表</title>
     <meta
       name="description"
-      content="烟台科技学院26级电商专升本2班实时课表，按当前周次、单双周和每天课程自动更新。"
+      content="烟台科技学院26级电商专升本2班实时课表，按第几周和日期快速查看每天课程。"
     />
     <link rel="stylesheet" href="assets/styles.css" />
   </head>
@@ -16,7 +16,7 @@
         <div>
           <p class="eyebrow">烟台科技学院 · 2026-2027-1</p>
           <h1>今天上什么课</h1>
-          <p class="subtitle">26级电商专升本2班实时课表，自动判断第几周和单双周。</p>
+          <p class="subtitle">26级电商专升本2班课表，直接按第几周和日期查课。</p>
         </div>
         <div class="status-card" aria-live="polite">
           <span id="todayLabel">今日</span>
@@ -32,17 +32,12 @@
       </section>
 
       <section class="controls" aria-label="课表筛选">
-        <label class="date-control">
-          <span>开学第一周周一</span>
-          <input id="termStart" type="date" value="2026-08-31" />
+        <label class="week-control">
+          <span>选择周次</span>
+          <select id="weekSelect" aria-label="选择第几周"></select>
         </label>
-        <div class="segmented" role="tablist" aria-label="周次">
-          <button class="active" data-filter="current" type="button">本周</button>
-          <button data-filter="next" type="button">下周</button>
-        </div>
         <div class="segmented days" role="tablist" aria-label="星期">
-          <button class="active" data-day="today" type="button">今天</button>
-          <button data-day="1" type="button">周一</button>
+          <button class="active" data-day="1" type="button">周一</button>
           <button data-day="2" type="button">周二</button>
           <button data-day="3" type="button">周三</button>
           <button data-day="4" type="button">周四</button>
@@ -56,40 +51,25 @@
         <article class="panel today-panel">
           <div class="panel-heading">
             <div>
-              <p class="eyebrow">Today</p>
-              <h2 id="currentDayTitle">今天课程</h2>
+              <p class="eyebrow">Day</p>
+              <h2 id="currentDayTitle">当天课程</h2>
             </div>
             <span id="courseCount" class="pill">0 门课</span>
           </div>
           <div id="todayCourses" class="course-list"></div>
         </article>
-
-        <aside class="panel summary-panel">
-          <p class="eyebrow">Auto Week</p>
-          <h2>自动判断单双周</h2>
-          <div class="split-grid">
-            <div>
-              <strong id="currentWeekType">--</strong>
-              <span id="currentWeekNumber">本周</span>
-            </div>
-            <div>
-              <strong id="nextWeekType">--</strong>
-              <span id="nextWeekNumber">下周</span>
-            </div>
-          </div>
-          <p id="nextClass" class="next-class">正在查找下一节课...</p>
-        </aside>
       </section>
 
       <section class="panel week-panel">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Weekly Timetable</p>
-            <h2 id="weekTitle">本周每天课程</h2>
+            <h2 id="weekTitle">第1周每天课程</h2>
           </div>
           <span class="pill">班级人数 35</span>
         </div>
         <div id="weekGrid" class="week-grid"></div>
+        <div id="weekNotes" class="week-notes"></div>
       </section>
 
       <section class="panel source-panel">

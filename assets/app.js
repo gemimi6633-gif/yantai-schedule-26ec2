@@ -7,13 +7,16 @@ const periods = {
 };
 
 const dayNames = ["星期天", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+const shortDayNames = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+const termStartText = "2026-08-31";
+const maxWeek = 17;
 
 const courses = [
   c("人工智能伦理", "贾鹏宇", 1, 1, [2, 4, 6, 8, 10, 12, 14, 16], "主校区 五教101"),
   c("直播营销与运营", "贾子十", 1, 2, range(1, 11).concat(range(14, 17)), "主校区 六教102"),
   c("短视频创作", "李宜男", 1, 3, [2, 4, 6, 8, 10, 11, 14, 16], "主校区 室外23"),
   c("消费者行为学", "迟少杰", 2, 1, range(1, 11).concat(range(14, 17)), "主校区 五教203"),
-  c("大学体育5", "宋子函", 2, 2, [1, 3, 5, 7, 9, 11, 13, 15], "主校区 体能训练-6"),
+  c("大学体育5", "宋子函", 2, 2, [1, 3, 5, 7, 9, 11, 13, 15], "主校区 体能训练--6"),
   c("形势与政策1", "刘秋云", 2, 3, range(5, 8), "主校区 五教201"),
   c("网络营销", "龙溪莉", 3, 1, range(1, 11).concat(range(14, 17)), "主校区 五教303"),
   c("电子商务概论", "宋金波", 3, 3, [2, 7, 8, 9, 10, 11, 14, 16, 17], "主校区 五教203"),
@@ -29,12 +32,12 @@ const courses = [
 ];
 
 const specialNotes = [
-  { name: "市场调查实习", teacher: "李鹏、罗林波", weeks: [12, 13], note: "备注课程，原图未给出固定节次" },
+  { name: "市场调查实习", teacher: "李鹏、罗林波", weeks: [12, 13], note: "原图备注未给固定星期和节次" },
 ];
 
 const state = {
-  filter: "current",
-  selectedDay: "today",
+  selectedWeek: 1,
+  selectedDay: 1,
 };
 
 function c(name, teacher, day, period, weeks, location) {
@@ -54,11 +57,7 @@ function dateOnly(date) {
 }
 
 function getTermStart() {
-  const saved = localStorage.getItem("termStart");
-  const input = document.querySelector("#termStart");
-  const value = saved || input.value || "2026-08-31";
-  input.value = value;
-  return new Date(`${value}T00:00:00`);
+  return new Date(`${termStartText}T00:00:00`);
 }
 
 function getWeekNumber(today = getToday()) {
@@ -67,142 +66,118 @@ function getWeekNumber(today = getToday()) {
   return Math.floor(diff / (7 * 24 * 60 * 60 * 1000)) + 1;
 }
 
-function weekType(week) {
-  if (week < 1) return "未开学";
-  return week % 2 === 1 ? "单周" : "双周";
+function clampWeek(week) {
+  if (week < 1) return 1;
+  if (week > maxWeek) return maxWeek;
+  return week;
 }
 
-function compactWeeks(weeks) {
-  const sorted = [...weeks].sort((a, b) => a - b);
-  const parts = [];
-  let start = sorted[0];
-  let prev = sorted[0];
-  for (let i = 1; i <= sorted.length; i += 1) {
-    const value = sorted[i];
-    if (value === prev + 1) {
-      prev = value;
-      continue;
-    }
-    parts.push(start === prev ? `${start}` : `${start}-${prev}`);
-    start = value;
-    prev = value;
-  }
-  return `${parts.join(",")}周`;
+function weekStartDate(week) {
+  const start = dateOnly(getTermStart());
+  start.setDate(start.getDate() + (week - 1) * 7);
+  return start;
+}
+
+function dayOffset(day) {
+  return day === 0 ? 6 : day - 1;
+}
+
+function dateForDay(week, day) {
+  const date = weekStartDate(week);
+  date.setDate(date.getDate() + dayOffset(day));
+  return date;
+}
+
+function formatMonthDay(date) {
+  return date.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" });
+}
+
+function formatFullDate(date) {
+  return date.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" });
 }
 
 function classStatus(course, now = getToday()) {
+  const currentWeek = getWeekNumber(now);
+  if (currentWeek !== state.selectedWeek || course.day !== now.getDay()) return "";
   const todayMinutes = now.getHours() * 60 + now.getMinutes();
   const [startH, startM] = periods[course.period].start.split(":").map(Number);
   const [endH, endM] = periods[course.period].end.split(":").map(Number);
   const start = startH * 60 + startM;
   const end = endH * 60 + endM;
-  if (course.day !== now.getDay()) return "";
   if (todayMinutes >= start && todayMinutes <= end) return "now";
   if (todayMinutes < start) return "upcoming";
   return "";
 }
 
-function matchesFilter(course, week) {
-  return week >= 1 && course.weeks.includes(week);
-}
-
-function displayWeek(currentWeek) {
-  const baseWeek = Math.max(1, currentWeek);
-  return state.filter === "next" ? baseWeek + 1 : baseWeek;
-}
-
-function targetDay() {
-  if (state.selectedDay === "today") return getToday().getDay();
-  return Number(state.selectedDay);
-}
-
 function coursesForDay(day, week) {
   return courses
-    .filter((course) => course.day === day && matchesFilter(course, week))
+    .filter((course) => course.day === day && course.weeks.includes(week))
     .sort((a, b) => a.period - b.period);
 }
 
-function getNextClass(week) {
-  const now = getToday();
-  for (let offset = 0; offset < 14; offset += 1) {
-    const date = new Date(now);
-    date.setDate(now.getDate() + offset);
-    const checkWeek = getWeekNumber(date);
-    const day = date.getDay();
-    const dayCourses = courses
-      .filter((course) => course.day === day && course.weeks.includes(checkWeek))
-      .sort((a, b) => a.period - b.period);
-    for (const course of dayCourses) {
-      if (offset > 0 || classStatus(course, now) === "upcoming" || classStatus(course, now) === "now") {
-        return { ...course, week: checkWeek, day };
-      }
-    }
-  }
-  return null;
+function defaultSelectedDay(currentWeek) {
+  if (currentWeek < 1) return 1;
+  return getToday().getDay();
 }
 
-function describeCourse(course, week) {
-  return `第${week}周 · ${dayNames[course.day]} · ${periods[course.period].time} · ${course.name}`;
+function populateWeekSelect() {
+  const select = document.querySelector("#weekSelect");
+  const currentWeek = getWeekNumber();
+  select.innerHTML = range(1, maxWeek)
+    .map((week) => {
+      const start = weekStartDate(week);
+      const end = weekStartDate(week);
+      end.setDate(end.getDate() + 6);
+      const current = week === currentWeek ? " 当前" : "";
+      return `<option value="${week}">第${week}周 ${formatMonthDay(start)}-${formatMonthDay(end)}${current}</option>`;
+    })
+    .join("");
+  select.value = String(state.selectedWeek);
 }
 
-function describeNextClass(course) {
-  return `${dayNames[course.day].replace("星期", "周")} ${periods[course.period].time} · ${course.name}`;
+function renderHeader(currentWeek) {
+  const today = getToday();
+  const todayText = today.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "long" });
+  document.querySelector("#todayLabel").textContent = todayText;
+  document.querySelector("#weekLabel").textContent = `第 ${state.selectedWeek} 周`;
+  document.querySelector("#termLabel").textContent =
+    currentWeek < 1
+      ? "当前还没到开学周，默认预览第1周"
+      : currentWeek > maxWeek
+        ? "当前日期已超过课表覆盖范围"
+        : `按 ${termStartText} 开始计算，当前是第 ${currentWeek} 周`;
 }
 
-function renderFocus(currentWeek, visibleWeek) {
-  const day = targetDay();
-  const visible = coursesForDay(day, visibleWeek);
+function renderDayButtons() {
+  document.querySelectorAll("[data-day]").forEach((button) => {
+    const day = Number(button.dataset.day);
+    const date = dateForDay(state.selectedWeek, day);
+    button.classList.toggle("active", day === state.selectedDay);
+    button.innerHTML = `<span>${shortDayNames[day]}</span><small>${formatMonthDay(date)}</small>`;
+  });
+}
+
+function renderFocus() {
+  const visible = coursesForDay(state.selectedDay, state.selectedWeek);
+  const date = dateForDay(state.selectedWeek, state.selectedDay);
   const focusTitle = document.querySelector("#focusTitle");
   const focusMeta = document.querySelector("#focusMeta");
-
-  if (state.filter === "next") {
-    const label = state.selectedDay === "today" ? `下周${dayNames[day].replace("星期", "周")}` : `下周${dayNames[day].replace("星期", "周")}`;
-    focusTitle.textContent = visible.length ? `${label}有 ${visible.length} 门课` : `${label}无课`;
-    focusMeta.textContent = visible.length
-      ? visible.map((course) => `${periods[course.period].time} ${course.name}`).join("，")
-      : `第${visibleWeek}周是${weekType(visibleWeek)}，当天没有课程安排。`;
-    return;
-  }
-
-  const nowCourse = visible.find((course) => classStatus(course) === "now");
-  const upcomingCourse = visible.find((course) => classStatus(course) === "upcoming");
-  if (nowCourse) {
-    focusTitle.textContent = `正在上：${nowCourse.name}`;
-    focusMeta.textContent = describeCourse(nowCourse, visibleWeek);
-    return;
-  }
-  if (upcomingCourse) {
-    focusTitle.textContent = `下一节：${upcomingCourse.name}`;
-    focusMeta.textContent = describeCourse(upcomingCourse, visibleWeek);
-    return;
-  }
-
-  const next = getNextClass(currentWeek);
-  if (next) {
-    focusTitle.textContent = visible.length ? `下一节：${next.name}` : `下一节：${next.name}`;
-    focusMeta.textContent = `第${next.week}周 · ${dayNames[next.day].replace("星期", "周")} ${periods[next.period].time} · ${next.location}`;
-    return;
-  }
-  focusTitle.textContent = visible.length ? "今天课程已结束" : "今天没有课";
-  focusMeta.textContent = "未来两周内没有找到课程。";
+  focusTitle.textContent = visible.length
+    ? `第${state.selectedWeek}周 ${shortDayNames[state.selectedDay]}有 ${visible.length} 门课`
+    : `第${state.selectedWeek}周 ${shortDayNames[state.selectedDay]}无课`;
+  focusMeta.textContent = visible.length
+    ? visible.map((course) => `${periods[course.period].time} ${course.name}`).join("，")
+    : `${formatFullDate(date)} 没有固定课程安排。`;
 }
 
-function courseCard(course, week, compact = false) {
-  const status = state.filter === "current" ? classStatus(course) : "";
-  const activeText =
-    status === "now"
-      ? "正在上课"
-      : status === "upcoming"
-        ? "稍后上课"
-        : state.filter === "next"
-          ? `第${week}周`
-          : compactWeeks(course.weeks);
+function courseCard(course, compact = false) {
+  const status = classStatus(course);
+  const activeText = status === "now" ? "正在上课" : status === "upcoming" ? "稍后上课" : `第${state.selectedWeek}周`;
   if (compact) {
     return `
       <div class="mini-course">
         <strong>${periods[course.period].time} · ${course.name}</strong>
         <span>${course.teacher} · ${course.location}</span>
-        <span>${compactWeeks(course.weeks)}</span>
       </div>
     `;
   }
@@ -211,44 +186,38 @@ function courseCard(course, week, compact = false) {
       <div class="time">${periods[course.period].time}<br><small>${periods[course.period].label}</small></div>
       <div>
         <h3 class="course-name">${course.name}</h3>
-        <p class="course-meta">${course.teacher} · ${course.location}<br>${periods[course.period].sections} · ${compactWeeks(course.weeks)}</p>
+        <p class="course-meta">${course.teacher} · ${course.location}<br>${periods[course.period].sections}</p>
       </div>
       <span class="week-tag">${activeText}</span>
     </article>
   `;
 }
 
-function renderToday(week) {
-  const day = targetDay();
-  const visible = coursesForDay(day, week);
-  const titlePrefix =
-    state.selectedDay === "today" && state.filter === "next"
-      ? "下周今天"
-      : state.filter === "next"
-        ? `下周${dayNames[day].replace("星期", "周")}`
-        : state.selectedDay === "today"
-          ? "今天"
-          : dayNames[day];
-  document.querySelector("#currentDayTitle").textContent = `${titlePrefix}课程`;
+function renderSelectedDay() {
+  const visible = coursesForDay(state.selectedDay, state.selectedWeek);
+  const date = dateForDay(state.selectedWeek, state.selectedDay);
+  const title = `${shortDayNames[state.selectedDay]}课程 · ${formatMonthDay(date)}`;
+  document.querySelector("#currentDayTitle").textContent = title;
   document.querySelector("#courseCount").textContent = `${visible.length} 门课`;
   document.querySelector("#todayCourses").innerHTML = visible.length
-    ? visible.map((course) => courseCard(course, week)).join("")
-    : `<div class="empty">${titlePrefix}在当前筛选下没有课程。周六、周日通常为空课表。</div>`;
+    ? visible.map((course) => courseCard(course)).join("")
+    : `<div class="empty">第${state.selectedWeek}周 ${shortDayNames[state.selectedDay]}没有固定课程。</div>`;
 }
 
-function renderWeek(week) {
+function renderWeek() {
   const grid = document.querySelector("#weekGrid");
   const days = [1, 2, 3, 4, 5, 6, 0];
   grid.innerHTML = days
     .map((day) => {
-      const list = coursesForDay(day, week);
-      const isActive = day === getToday().getDay();
+      const list = coursesForDay(day, state.selectedWeek);
+      const date = dateForDay(state.selectedWeek, day);
+      const isActive = day === state.selectedDay;
       return `
         <section class="day-column ${isActive ? "active-day" : ""}">
-          <div class="day-title"><span>${dayNames[day]}</span><small>${list.length}门</small></div>
+          <div class="day-title"><span>${shortDayNames[day]} ${formatMonthDay(date)}</span><small>${list.length}门</small></div>
           ${
             list.length
-              ? list.map((course) => courseCard(course, week, true)).join("")
+              ? list.map((course) => courseCard(course, true)).join("")
               : `<div class="empty">无课</div>`
           }
         </section>
@@ -256,67 +225,51 @@ function renderWeek(week) {
     })
     .join("");
 
-  const filterName = {
-    current: `本周每天课程 · 第${week}周`,
-    next: `下周每天课程 · 第${week}周`,
-  };
-  document.querySelector("#weekTitle").textContent = filterName[state.filter];
+  document.querySelector("#weekTitle").textContent = `第${state.selectedWeek}周每天课程`;
+  renderWeekNotes();
 }
 
-function renderSummary(week) {
-  const currentLabelWeek = Math.max(1, week);
-  const nextWeek = currentLabelWeek + 1;
-  document.querySelector("#currentWeekType").textContent = weekType(week);
-  document.querySelector("#currentWeekNumber").textContent = week < 1 ? "即将开学 · 第1周" : `本周 · 第${week}周`;
-  document.querySelector("#nextWeekType").textContent = weekType(nextWeek);
-  document.querySelector("#nextWeekNumber").textContent = `下周 · 第${nextWeek}周`;
-  const next = getNextClass(week);
-  document.querySelector("#nextClass").textContent = next
-    ? `下一节：第${next.week}周 ${dayNames[next.day].replace("星期", "周")} ${periods[next.period].time}`
-    : "未来两周内没有找到课程。";
-}
-
-function renderHeader(week) {
-  const today = getToday();
-  const date = today.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "long" });
-  document.querySelector("#todayLabel").textContent = date;
-  document.querySelector("#weekLabel").textContent = week < 1 ? "开学前" : `第 ${week} 周 · ${weekType(week)}`;
-  document.querySelector("#termLabel").textContent =
-    week > 17 ? "已超过图片课表覆盖的1-17周" : "页面会随日期自动更新";
+function renderWeekNotes() {
+  const notes = specialNotes.filter((item) => item.weeks.includes(state.selectedWeek));
+  const box = document.querySelector("#weekNotes");
+  if (!notes.length) {
+    box.innerHTML = "";
+    return;
+  }
+  box.innerHTML = notes
+    .map((item) => `<p>备注：第${state.selectedWeek}周有${item.name}（${item.teacher}），${item.note}。</p>`)
+    .join("");
 }
 
 function render() {
   const currentWeek = getWeekNumber();
-  const week = displayWeek(currentWeek);
+  populateWeekSelect();
   renderHeader(currentWeek);
-  renderFocus(currentWeek, week);
-  renderToday(week);
-  renderWeek(week);
-  renderSummary(currentWeek);
+  renderDayButtons();
+  renderFocus();
+  renderSelectedDay();
+  renderWeek();
 }
 
-document.querySelectorAll("[data-filter]").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("[data-filter]").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
-    state.filter = button.dataset.filter;
+function init() {
+  const currentWeek = getWeekNumber();
+  state.selectedWeek = clampWeek(currentWeek);
+  state.selectedDay = defaultSelectedDay(currentWeek);
+
+  document.querySelector("#weekSelect").addEventListener("change", (event) => {
+    state.selectedWeek = Number(event.target.value);
     render();
   });
-});
 
-document.querySelectorAll("[data-day]").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("[data-day]").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
-    state.selectedDay = button.dataset.day;
-    render();
+  document.querySelectorAll("[data-day]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedDay = Number(button.dataset.day);
+      render();
+    });
   });
-});
 
-document.querySelector("#termStart").addEventListener("change", (event) => {
-  localStorage.setItem("termStart", event.target.value);
   render();
-});
+  setInterval(render, 60 * 1000);
+}
 
-render();
-setInterval(render, 60 * 1000);
+init();

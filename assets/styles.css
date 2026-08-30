@@ -32,7 +32,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -142,7 +143,7 @@ h2 {
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: center;
   margin: 18px 0;
@@ -161,7 +162,17 @@ h2 {
   font-weight: 700;
 }
 
-.date-control input {
+.week-control {
+  display: grid;
+  gap: 5px;
+  max-width: 360px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.date-control input,
+.week-control select {
   width: 100%;
   padding: 11px 12px;
   border: 1px solid var(--line);
@@ -191,6 +202,18 @@ h2 {
   cursor: pointer;
 }
 
+.segmented.days button {
+  display: grid;
+  gap: 1px;
+  place-items: center;
+}
+
+.segmented.days button small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.76;
+}
+
 .segmented button.active,
 .segmented button:hover {
   border-color: var(--blue);
@@ -200,7 +223,7 @@ h2 {
 
 .now-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
@@ -329,6 +352,20 @@ h2 {
 
 .week-panel {
   margin-top: 18px;
+}
+
+.week-notes {
+  margin-top: 14px;
+}
+
+.week-notes p {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #85510e;
+  font-size: 14px;
+  line-height: 1.6;
+  background: #fff6e8;
 }
 
 .week-grid {
@@ -527,24 +564,23 @@ h2 {
     display: none;
   }
 
-  .segmented {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+  .week-control {
+    max-width: none;
+    font-size: 12px;
+  }
+
+  .week-control select {
+    min-height: 48px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
   }
 
   .segmented.days {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-column: auto;
-    flex-wrap: nowrap;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-  }
-
-  .segmented.days::-webkit-scrollbar {
-    display: none;
   }
 
   .segmented button {
@@ -555,8 +591,8 @@ h2 {
   }
 
   .segmented.days button {
-    flex: 0 0 auto;
-    min-width: 66px;
+    min-width: 0;
+    padding: 0 8px;
   }
 
   .now-grid {
