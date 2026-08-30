@@ -140,12 +140,6 @@ function renderHeader(currentWeek) {
   const todayText = today.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "long" });
   document.querySelector("#todayLabel").textContent = todayText;
   document.querySelector("#weekLabel").textContent = `第 ${state.selectedWeek} 周`;
-  document.querySelector("#termLabel").textContent =
-    currentWeek < 1
-      ? "当前还没到开学周，默认预览第1周"
-      : currentWeek > maxWeek
-        ? "当前日期已超过课表覆盖范围"
-        : `按 ${termStartText} 开始计算，当前是第 ${currentWeek} 周`;
 }
 
 function renderDayButtons() {
@@ -172,7 +166,6 @@ function renderFocus() {
 
 function courseCard(course, compact = false) {
   const status = classStatus(course);
-  const activeText = status === "now" ? "正在上课" : status === "upcoming" ? "稍后上课" : `第${state.selectedWeek}周`;
   if (compact) {
     return `
       <div class="mini-course">
@@ -188,7 +181,6 @@ function courseCard(course, compact = false) {
         <h3 class="course-name">${course.name}</h3>
         <p class="course-meta">${course.teacher} · ${course.location}<br>${periods[course.period].sections}</p>
       </div>
-      <span class="week-tag">${activeText}</span>
     </article>
   `;
 }
@@ -198,7 +190,6 @@ function renderSelectedDay() {
   const date = dateForDay(state.selectedWeek, state.selectedDay);
   const title = `${shortDayNames[state.selectedDay]}课程 · ${formatMonthDay(date)}`;
   document.querySelector("#currentDayTitle").textContent = title;
-  document.querySelector("#courseCount").textContent = `${visible.length} 门课`;
   document.querySelector("#todayCourses").innerHTML = visible.length
     ? visible.map((course) => courseCard(course)).join("")
     : `<div class="empty">第${state.selectedWeek}周 ${shortDayNames[state.selectedDay]}没有固定课程。</div>`;

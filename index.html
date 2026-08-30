@@ -14,26 +14,22 @@
     <main class="app-shell">
       <section class="hero">
         <div>
-          <p class="eyebrow">烟台科技学院 · 2026-2027-1</p>
           <h1>今天上什么课</h1>
-          <p class="subtitle">26级电商专升本2班课表，直接按第几周和日期查课。</p>
+          <p class="subtitle">26级电商专升本2班</p>
         </div>
         <div class="status-card" aria-live="polite">
           <span id="todayLabel">今日</span>
           <strong id="weekLabel">计算中</strong>
-          <small id="termLabel">默认第1周从 2026-08-31 开始</small>
         </div>
       </section>
 
       <section class="focus-card" aria-live="polite">
-        <p class="eyebrow">一眼看重点</p>
         <h2 id="focusTitle">正在读取课表</h2>
         <p id="focusMeta">页面会自动判断今天的课程安排。</p>
       </section>
 
       <section class="controls" aria-label="课表筛选">
         <label class="week-control">
-          <span>选择周次</span>
           <select id="weekSelect" aria-label="选择第几周"></select>
         </label>
         <div class="segmented days" role="tablist" aria-label="星期">
@@ -50,11 +46,7 @@
       <section class="now-grid">
         <article class="panel today-panel">
           <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Day</p>
-              <h2 id="currentDayTitle">当天课程</h2>
-            </div>
-            <span id="courseCount" class="pill">0 门课</span>
+            <h2 id="currentDayTitle">当天课程</h2>
           </div>
           <div id="todayCourses" class="course-list"></div>
         </article>
@@ -62,23 +54,10 @@
 
       <section class="panel week-panel">
         <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Weekly Timetable</p>
-            <h2 id="weekTitle">第1周每天课程</h2>
-          </div>
-          <span class="pill">班级人数 35</span>
+          <h2 id="weekTitle">第1周每天课程</h2>
         </div>
         <div id="weekGrid" class="week-grid"></div>
         <div id="weekNotes" class="week-notes"></div>
-      </section>
-
-      <section class="panel source-panel">
-        <div>
-          <p class="eyebrow">Source</p>
-          <h2>原始课表图片</h2>
-          <p>网页数据根据你提供的课表图片整理，图片只作为课表来源参考。</p>
-        </div>
-        <img src="assets/source-schedule.png" alt="原始班级课表截图" />
       </section>
     </main>
     <script src="assets/app.js"></script>
