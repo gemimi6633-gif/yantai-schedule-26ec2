@@ -107,7 +107,8 @@ function matchesFilter(course, week) {
 }
 
 function displayWeek(currentWeek) {
-  return state.filter === "next" ? currentWeek + 1 : currentWeek;
+  const baseWeek = Math.max(1, currentWeek);
+  return state.filter === "next" ? baseWeek + 1 : baseWeek;
 }
 
 function targetDay() {
@@ -138,6 +139,52 @@ function getNextClass(week) {
     }
   }
   return null;
+}
+
+function describeCourse(course, week) {
+  return `第${week}周 · ${dayNames[course.day]} · ${periods[course.period].time} · ${course.name}`;
+}
+
+function describeNextClass(course) {
+  return `${dayNames[course.day].replace("星期", "周")} ${periods[course.period].time} · ${course.name}`;
+}
+
+function renderFocus(currentWeek, visibleWeek) {
+  const day = targetDay();
+  const visible = coursesForDay(day, visibleWeek);
+  const focusTitle = document.querySelector("#focusTitle");
+  const focusMeta = document.querySelector("#focusMeta");
+
+  if (state.filter === "next") {
+    const label = state.selectedDay === "today" ? `下周${dayNames[day].replace("星期", "周")}` : `下周${dayNames[day].replace("星期", "周")}`;
+    focusTitle.textContent = visible.length ? `${label}有 ${visible.length} 门课` : `${label}无课`;
+    focusMeta.textContent = visible.length
+      ? visible.map((course) => `${periods[course.period].time} ${course.name}`).join("，")
+      : `第${visibleWeek}周是${weekType(visibleWeek)}，当天没有课程安排。`;
+    return;
+  }
+
+  const nowCourse = visible.find((course) => classStatus(course) === "now");
+  const upcomingCourse = visible.find((course) => classStatus(course) === "upcoming");
+  if (nowCourse) {
+    focusTitle.textContent = `正在上：${nowCourse.name}`;
+    focusMeta.textContent = describeCourse(nowCourse, visibleWeek);
+    return;
+  }
+  if (upcomingCourse) {
+    focusTitle.textContent = `下一节：${upcomingCourse.name}`;
+    focusMeta.textContent = describeCourse(upcomingCourse, visibleWeek);
+    return;
+  }
+
+  const next = getNextClass(currentWeek);
+  if (next) {
+    focusTitle.textContent = visible.length ? `下一节：${next.name}` : `下一节：${next.name}`;
+    focusMeta.textContent = `第${next.week}周 · ${dayNames[next.day].replace("星期", "周")} ${periods[next.period].time} · ${next.location}`;
+    return;
+  }
+  focusTitle.textContent = visible.length ? "今天课程已结束" : "今天没有课";
+  focusMeta.textContent = "未来两周内没有找到课程。";
 }
 
 function courseCard(course, week, compact = false) {
@@ -217,14 +264,15 @@ function renderWeek(week) {
 }
 
 function renderSummary(week) {
-  const nextWeek = week + 1;
+  const currentLabelWeek = Math.max(1, week);
+  const nextWeek = currentLabelWeek + 1;
   document.querySelector("#currentWeekType").textContent = weekType(week);
-  document.querySelector("#currentWeekNumber").textContent = week < 1 ? "本周未开学" : `本周 · 第${week}周`;
+  document.querySelector("#currentWeekNumber").textContent = week < 1 ? "即将开学 · 第1周" : `本周 · 第${week}周`;
   document.querySelector("#nextWeekType").textContent = weekType(nextWeek);
   document.querySelector("#nextWeekNumber").textContent = `下周 · 第${nextWeek}周`;
   const next = getNextClass(week);
   document.querySelector("#nextClass").textContent = next
-    ? `下一节：第${next.week}周 ${dayNames[next.day]} ${periods[next.period].time}，${next.name}，${next.location}。`
+    ? `下一节：第${next.week}周 ${dayNames[next.day].replace("星期", "周")} ${periods[next.period].time}`
     : "未来两周内没有找到课程。";
 }
 
@@ -241,6 +289,7 @@ function render() {
   const currentWeek = getWeekNumber();
   const week = displayWeek(currentWeek);
   renderHeader(currentWeek);
+  renderFocus(currentWeek, week);
   renderToday(week);
   renderWeek(week);
   renderSummary(currentWeek);
