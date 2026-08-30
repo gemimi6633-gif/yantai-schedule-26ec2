@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>26级电商专升本2班实时课表</title>
+    <meta
+      name="description"
+      content="烟台科技学院26级电商专升本2班实时课表，按当前周次、单双周和每天课程自动更新。"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">烟台科技学院 · 2026-2027-1</p>
+          <h1>26级电商专升本2班实时课表</h1>
+          <p class="subtitle">自动计算当前周次，拆分单周/双周课程，快速查看每天上什么课。</p>
+        </div>
+        <div class="status-card" aria-live="polite">
+          <span id="todayLabel">今日</span>
+          <strong id="weekLabel">计算中</strong>
+          <small id="termLabel">默认第1周从 2026-08-31 开始</small>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="课表筛选">
+        <label class="date-control">
+          <span>开学第一周周一</span>
+          <input id="termStart" type="date" value="2026-08-31" />
+        </label>
+        <div class="segmented" role="tablist" aria-label="周次类型">
+          <button class="active" data-filter="current" type="button">本周</button>
+          <button data-filter="odd" type="button">单周</button>
+          <button data-filter="even" type="button">双周</button>
+          <button data-filter="all" type="button">全部</button>
+        </div>
+        <div class="segmented days" role="tablist" aria-label="星期">
+          <button class="active" data-day="today" type="button">今天</button>
+          <button data-day="1" type="button">周一</button>
+          <button data-day="2" type="button">周二</button>
+          <button data-day="3" type="button">周三</button>
+          <button data-day="4" type="button">周四</button>
+          <button data-day="5" type="button">周五</button>
+          <button data-day="6" type="button">周六</button>
+          <button data-day="0" type="button">周日</button>
+        </div>
+      </section>
+
+      <section class="now-grid">
+        <article class="panel today-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2 id="currentDayTitle">今天课程</h2>
+            </div>
+            <span id="courseCount" class="pill">0 门课</span>
+          </div>
+          <div id="todayCourses" class="course-list"></div>
+        </article>
+
+        <aside class="panel summary-panel">
+          <p class="eyebrow">Week Split</p>
+          <h2>单双周概览</h2>
+          <div class="split-grid">
+            <div>
+              <strong id="oddCount">0</strong>
+              <span>单周课程安排</span>
+            </div>
+            <div>
+              <strong id="evenCount">0</strong>
+              <span>双周课程安排</span>
+            </div>
+          </div>
+          <p id="nextClass" class="next-class">正在查找下一节课...</p>
+        </aside>
+      </section>
+
+      <section class="panel week-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Weekly Timetable</p>
+            <h2 id="weekTitle">本周每天课程</h2>
+          </div>
+          <span class="pill">班级人数 35</span>
+        </div>
+        <div id="weekGrid" class="week-grid"></div>
+      </section>
+
+      <section class="panel source-panel">
+        <div>
+          <p class="eyebrow">Source</p>
+          <h2>原始课表图片</h2>
+          <p>网页数据根据你提供的课表图片整理，图片只作为课表来源参考。</p>
+        </div>
+        <img src="/assets/source-schedule.png" alt="原始班级课表截图" />
+      </section>
+    </main>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
