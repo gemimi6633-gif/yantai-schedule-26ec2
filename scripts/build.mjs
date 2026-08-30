@@ -19,6 +19,7 @@ async function main() {
   await fs.rm(dist, { recursive: true, force: true });
   await fs.mkdir(serverDir, { recursive: true });
   await fs.mkdir(publicDir, { recursive: true });
+  await fs.mkdir(path.join(dist, ".openai"), { recursive: true });
 
   const html = await read("index.html");
   const css = await read("assets/styles.css");
@@ -66,6 +67,7 @@ export default {
 };
 `;
   await fs.writeFile(path.join(serverDir, "index.js"), worker.trimStart());
+  await fs.copyFile(path.join(root, ".openai/hosting.json"), path.join(dist, ".openai/hosting.json"));
   console.log("Built dist/server/index.js and dist/public assets");
 }
 
